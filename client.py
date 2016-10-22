@@ -2,6 +2,8 @@
 import socket
 import sys
 import json
+import csv
+import time
 
 
 class KeyValClient():
@@ -14,29 +16,28 @@ class KeyValClient():
 
     def decodeMessage(self, binaryData):
         receivedString = binaryData.decode("ascii")
-        jsonFormat = receivedString.replace("'", "\"")
-        message = json.loads(jsonFormat)
+        message = json.loads(receivedString)
         return message
 
-    def encodeMessage(self, command="", key="", value="", result="", error="", success=""):
+    def encodeMessage(self, command="", key="", value="", error="", success=""):
         dictionary = {}
         dictionary["command"] = command
         dictionary["key"] = key
         dictionary["value"] = value
-        dictionary["success"] = result
+        dictionary["success"] = success
         dictionary["error"] = error
-        message = str(dictionary).replace("'", "\"")
+        message = json.dumps(dictionary)
         return message
 
     def send(self, message):
         if (self.protocol == "TCP"):
-            print("Sent: ", message)
             tcpSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tcpSocket.connect((self.serverAddress, self.port))
             tcpSocket.send(message.encode("ascii"))
             data = tcpSocket.recv(self.bufferSize)
             tcpSocket.close()
-            print("Received: ", data.decode("ascii"))
+            time.sleep(0.1)
+            # print("Received: ", data.decode("ascii"))
             return data
         elif (self.protocol == "UDP"):
             print("UDP not implemented")
@@ -48,20 +49,26 @@ class KeyValClient():
     def get(self, key):
         outMessage = self.encodeMessage(command="get", key=key)
         inMessage = self.decodeMessage(self.send(outMessage))
-        return inMessage["value"]
+        if(bool(inMessage["success"])):
+            print(str(key) + ": " + str(inMessage["value"]) + " retrived")
+        else:
+            print(str(key) + " not retrived")
 
     def put(self, key, value):
         outMessage = self.encodeMessage(command="put", key=key, value=value)
         inMessage = self.decodeMessage(self.send(outMessage))
         if(bool(inMessage["success"])):
-            print(str(key) + " was successfully added with value of " + str(value))
+            print(str(key) + ": " + str(value) + " added")
         else:
-            print(str(key) + " was successfully added with value of " + str(value))
+            print(str(key) + ": " + str(value) + " not added")
 
     def delete(self, key):
         outMessage = self.encodeMessage(command="delete", key=key)
         inMessage = self.decodeMessage(self.send(outMessage))
-        return inMessage["success"]
+        if(bool(inMessage["success"])):
+            print(str(key) + " removed")
+        else:
+            print(str(key) + " not removed")
 
 
 def main():
@@ -69,10 +76,20 @@ def main():
     port = 5005
     protocol = "TCP"
     bufferSize = 1024
-    message = "I want to travel to another place"
+    testOperationsPath = "kvp-operations.csv"
 
     keyValClient = KeyValClient(ip, port, protocol, bufferSize)
-    keyValClient.put("Bob", 26)
-    # keyValClient.send(message)
 
+    with open(testOperationsPath, newline="\n") as operationsFile:
+        operationReader = csv.reader(operationsFile, delimiter=",")
+        for operation in operationReader:
+            command = operation[0]
+            if(command == "PUT"):
+                keyValClient.put(operation[1], operation[2])
+            elif(command == "GET"):
+                keyValClient.get(operation[1])
+            elif(command == "DELETE"):
+                keyValClient.delete(operation[1])
+            else:
+                print(command + " is not a valid command")
 main()

@@ -12,18 +12,17 @@ class KeyValServer():
 
     def decodeMessage(self, binaryData):
         receivedString = binaryData.decode("ascii")
-        jsonFormat = receivedString.replace("'", "\"")
-        message = json.loads(jsonFormat)
+        message = json.loads(receivedString)
         return message
 
-    def encodeMessage(self, command="", key="", value="", result="", error="", success=""):
+    def encodeMessage(self, command="", key="", value="", error="", success=""):
         dictionary = {}
         dictionary["command"] = command
         dictionary["key"] = key
         dictionary["value"] = value
-        dictionary["success"] = result
+        dictionary["success"] = success
         dictionary["error"] = error
-        message = str(dictionary).replace("'", "\"")
+        message = json.dumps(dictionary)
         return message
 
     def run(self):
@@ -59,7 +58,7 @@ class KeyValServer():
                 else:
                     error = "No command called " + command
                     outMessage = self.encodeMessage(success=False, error=error)
-
+                print("Sent: " + outMessage)
                 conn.send(outMessage.encode("ascii"))
             conn.close()
 
