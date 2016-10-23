@@ -36,11 +36,13 @@ class KeyValClient():
             tcpSocket.send(message.encode("ascii"))
             data = tcpSocket.recv(self.bufferSize)
             tcpSocket.close()
-            time.sleep(0.1)
-            # print("Received: ", data.decode("ascii"))
             return data
         elif (self.protocol == "UDP"):
-            print("UDP not implemented")
+            udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            udpSocket.connect((self.serverAddress, self.port))
+            udpSocket.send(message.encode("ascii"))
+            data = udpSocket.recv(self.bufferSize)
+            udpSocket.close()
         elif (self.protocol == "RPC"):
             print("RPC not implemented")
         else:
