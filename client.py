@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-import socket
-import sys
-import json
-import csv
-import time
+from socket import socket
+from socket import AF_INET
+from socket import SOCK_STREAM
+from socket import SOCK_DGRAM
+from json import loads
+from json import dumps
+from csv import reader
 
 
 class KeyValClient():
@@ -18,7 +20,7 @@ class KeyValClient():
         if(type(binaryData) is tuple):
             binaryData = binaryData[0]
         receivedString = binaryData.decode("ascii")
-        message = json.loads(receivedString)
+        message = loads(receivedString)
         return message
 
     def encodeMessage(self, command="", key="", value="", error="", success=""):
@@ -28,19 +30,19 @@ class KeyValClient():
         dictionary["value"] = value
         dictionary["success"] = success
         dictionary["error"] = error
-        message = json.dumps(dictionary)
+        message = dumps(dictionary)
         return message
 
     def send(self, message):
         data = ""
         if (self.protocol == "TCP"):
-            tcpSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tcpSocket = socket(AF_INET, SOCK_STREAM)
             tcpSocket.connect((self.serverAddress, self.port))
             tcpSocket.send(message.encode("ascii"))
             data = tcpSocket.recv(self.bufferSize)
             tcpSocket.close()
         elif (self.protocol == "UDP"):
-            udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            udpSocket = socket(AF_INET, SOCK_DGRAM)
             udpSocket.sendto(message.encode("ascii"), (self.serverAddress, self.port))
             data = udpSocket.recvfrom(self.bufferSize)
             udpSocket.close()
@@ -89,7 +91,7 @@ def main():
     keyValClient = KeyValClient(ip, port, protocol, bufferSize)
 
     with open(testOperationsPath, newline="\n") as operationsFile:
-        operationReader = csv.reader(operationsFile, delimiter=",")
+        operationReader = reader(operationsFile, delimiter=",")
         for operation in operationReader:
             command = operation[0]
             if(command == "PUT"):
@@ -100,4 +102,6 @@ def main():
                 keyValClient.delete(operation[1])
             else:
                 print(command + " is not a valid command")
-main()
+
+if __name__ == '__main__':
+    main()

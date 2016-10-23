@@ -1,15 +1,22 @@
 #!/usr/bin/env python
-import socket
-import json
-import threading
-import sys
-import select
+from socket import socket
+from socket import AF_INET
+from socket import SOCK_STREAM
+from socket import SOCK_DGRAM
+from socket import SOL_SOCKET
+from socket import SO_REUSEADDR
+from json import loads
+from json import dumps
+from threading import Thread
+from threading import Lock
+from sys import stdin
+from select import select
 
 
 class KeyValServer():
     def __init__(self, serverAddress, tcpPort, udpPort, bufferSize):
         self.keyVal = {}
-        self.keyValLock = threading.Lock()
+        self.keyValLock = Lock()
         self.serverAddress = serverAddress
         self.tcpPort = tcpPort
         self.udpPort = udpPort
@@ -23,7 +30,7 @@ class KeyValServer():
         if(type(binaryData) is tuple):
             binaryData = binaryData[0]
         receivedString = binaryData.decode("ascii")
-        message = json.loads(receivedString)
+        message = loads(receivedString)
         return message
 
     def encodeMessage(self, command="", key="", value="", error="", success=""):
@@ -33,17 +40,17 @@ class KeyValServer():
         dictionary["value"] = value
         dictionary["success"] = success
         dictionary["error"] = error
-        message = json.dumps(dictionary)
+        message = dumps(dictionary)
         return message
 
     def openSockets(self):
-        self.tcpSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.tcpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.tcpSocket = socket(AF_INET, SOCK_STREAM)
+        self.tcpSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.tcpSocket.bind((self.serverAddress, self.tcpPort))
         self.tcpSocket.listen(self.backlog)
 
-        self.udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.udpSocket = socket(AF_INET, SOCK_DGRAM)
+        self.udpSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.udpSocket.bind((self.serverAddress, self.udpPort))
 
     def handleRequest(self, connection, address):
@@ -106,21 +113,21 @@ class KeyValServer():
 
     def run(self):
         self.openSockets()
-        inputs = [self.tcpSocket, self.udpSocket, sys.stdin]
+        inputs = [self.tcpSocket, self.udpSocket, stdin]
         isRunning = True
         while isRunning:
-            readyInputs, readyOutputs, readyExcepts = select.select(inputs, [], [])
+            readyInputs, readyOutputs, readyExcepts = select(inputs, [], [])
             for readyInput in readyInputs:
                 if(readyInput == self.tcpSocket):
                     connection, address = self.tcpSocket.accept()
-                    response = threading.Thread(target=self.handleRequest, args=(connection, address))
+                    response = Thread(target=self.handleRequest, args=(connection, address))
                     response.start()
                     self.threads.append(response)
                 elif(readyInput == self.udpSocket):
-                    response = threading.Thread(target=self.handleUDPRequest, args=())
+                    response = Thread(target=self.handleUDPRequest, args=())
                     response.start()
                     self.threads.append(response)
-                elif(readyInput == sys.stdin):
+                elif(readyInput == stdin):
                     isRunning = False
 
         self.tcpSocket.close()
@@ -156,4 +163,5 @@ def main():
     keyValServer = KeyValServer(ip, tcpPort, udpPort, bufferSize)
     keyValServer.run()
 
-main()
+if __name__ == '__main__':
+    main()
