@@ -10,9 +10,13 @@ from threading import Thread
 from threading import Lock
 from sys import stdin
 from select import select
+import time
+import grpc
+import distributedKeyValStore_pb2
+from concurrent import futures
 
 
-class KeyValServer():
+class KeyValServer(distributedKeyValStore_pb2.KeyValStoreServicer):
     def __init__(self, serverAddress, tcpPort, udpPort, bufferSize):
         self.keyVal = {}
         self.keyValLock = Lock()
@@ -128,7 +132,9 @@ class KeyValServer():
                     self.threads.append(response)
                 elif(readyInput == stdin):
                     isRunning = False
+        self.stop()
 
+    def stop(self):
         self.tcpSocket.close()
         self.udpSocket.close()
         for response in self.threads:
@@ -153,14 +159,34 @@ class KeyValServer():
         self.keyValLock.release()
         return True
 
+    def getrpc(self, request, context):
+        value = self.get(request.key)
+        return distributedKeyValStore_pb2.GetReply(key=request.key, value=value, success=True)
+
+    def putrpc(self, request, context):
+        success = self.put(request.key, request.value)
+        return distributedKeyValStore_pb2.PutRequest(key=request.key, value=request.value, success=success)
+
+    def deleterpc(self, request, context):
+        success = self.delete(request.key)
+        return distributedKeyValStore_pb2.PutRequest(key=request.key, success=success)
+
 
 def main():
     ip = "127.0.0.1"
     tcpPort = 5005
     udpPort = 5006
+    rpcPort = 5007
     bufferSize = 1024
     keyValServer = KeyValServer(ip, tcpPort, udpPort, bufferSize)
-    keyValServer.run()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    distributedKeyValStore_pb2.add_KeyValStoreServicer_to_server(keyValServer, server)
+    server.add_insecure_port("[::]:" + str(rpcPort))
+    server.start()
+    try:
+        keyValServer.run()
+    except KeyboardInterrupt:
+        server.stop(0)
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,45 @@
+// build command
+// python -m grpc.tools.protoc -I./proto --python_out=. --grpc_python_out=. ./proto/distributedKeyValStore.proto
+
+syntax = "proto3";
+
+package distributedkeyvalstore;
+
+service KeyValStore {
+  rpc getrpc(GetRequest) returns (GetReply) {}
+  rpc putrpc(PutRequest) returns (PutReply) {}
+  rpc deleterpc(DeleteRequest) returns (DeleteReply) {}
+}
+
+message GetRequest {
+  string key = 1;
+  bool success = 2;
+}
+
+message GetReply {
+  string key = 1;
+  string value = 2;
+  bool success = 3;
+}
+
+message PutRequest {
+  string key = 1;
+  string value = 2;
+  bool success = 3;
+}
+
+message PutReply {
+  string key = 1;
+  string value = 2;
+  bool success = 3;
+}
+
+message DeleteRequest {
+  string key = 1;
+  bool success = 2;
+}
+
+message DeleteReply {
+  string key = 1;
+  bool success = 2;
+}
