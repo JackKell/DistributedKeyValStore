@@ -20,8 +20,6 @@ class KeyValServer():
         self.threads = []
 
     def decodeMessage(self, binaryData):
-        if(type(binaryData) is tuple):
-            binaryData = binaryData[0]
         receivedString = binaryData.decode("ascii")
         message = json.loads(receivedString)
         return message
@@ -43,42 +41,18 @@ class KeyValServer():
         self.tcpSocket.listen(self.backlog)
 
         self.udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udpSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.udpSocket.bind((self.serverAddress, self.udpPort))
 
-    def handleRequest(self, connection, address):
-        isRunning = True
-        while isRunning:
-            data = connection.recv(self.bufferSize)
-            if not data:
-                break
-            inMessage = self.decodeMessage(data)
-            outMessage = ""
-            command = inMessage["command"]
-            if(command == "get"):
-                key = inMessage["key"]
-                value = self.get(key)
-                outMessage = self.encodeMessage(key=key, value=value, success=True)
-            elif(command == "put"):
-                key = inMessage["key"]
-                value = inMessage["value"]
-                success = self.put(key, value)
-                outMessage = self.encodeMessage(key=key, value=value, success=success)
-            elif(command == "delete"):
-                key = inMessage["key"]
-                success = self.delete(key)
-                outMessage = self.encodeMessage(key=key, success=success)
-            else:
-                error = "No command called " + command
-                outMessage = self.encodeMessage(success=False, error=error)
-            connection.send(outMessage.encode("ascii"))
-            isRunning = False
-        connection.close()
-
-    def handleUDPRequest(self):
-        isRunning = True
-        while isRunning:
-            data, address = self.udpSocket.recvfrom(self.bufferSize)
+    def handleRequest(self, protocol):
+        while True:
+            data = None
+            connection = None
+            address = None
+            if(protocol == "TCP"):
+                connection, address = self.tcpSocket.accept()
+                data = connection.recv(self.bufferSize)
+            elif(protocol == "UDP"):
+                data, address = self.udpSocket.recvfrom(self.bufferSize)
+                print(data)
             if not data:
                 break
             inMessage = self.decodeMessage(data)
@@ -101,8 +75,13 @@ class KeyValServer():
                 error = "No command called " + command
                 outMessage = self.encodeMessage(success=False, error=error)
 
-            self.udpSocket.sendto(outMessage.encode("ascii"), address)
-            isRunning = False
+            if(protocol == "TCP"):
+                connection.send(outMessage.encode("ascii"))
+            elif(protocol == "UDP"):
+                self.udpSocket.sendto(outMessage.encode("ascii"), (address, self.udpPort))
+
+        if(protocol == "TCP"):
+            connection.close()
 
     def run(self):
         self.openSockets()
@@ -112,12 +91,14 @@ class KeyValServer():
             readyInputs, readyOutputs, readyExcepts = select.select(inputs, [], [])
             for readyInput in readyInputs:
                 if(readyInput == self.tcpSocket):
-                    connection, address = self.tcpSocket.accept()
-                    response = threading.Thread(target=self.handleRequest, args=(connection, address))
+                    # connection, address = self.tcpSocket.accept()
+                    protocol = "TCP"
+                    response = threading.Thread(target=self.handleRequest, args=(protocol))
                     response.start()
                     self.threads.append(response)
                 elif(readyInput == self.udpSocket):
-                    response = threading.Thread(target=self.handleUDPRequest, args=())
+                    protocol = "UDP"
+                    response = threading.Thread(target=self.handleRequest, args=(protocol))
                     response.start()
                     self.threads.append(response)
                 elif(readyInput == sys.stdin):

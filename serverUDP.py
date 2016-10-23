@@ -47,8 +47,7 @@ class KeyValServer():
         self.udpSocket.bind((self.serverAddress, self.udpPort))
 
     def handleRequest(self, connection, address):
-        isRunning = True
-        while isRunning:
+        while True:
             data = connection.recv(self.bufferSize)
             if not data:
                 break
@@ -72,12 +71,11 @@ class KeyValServer():
                 error = "No command called " + command
                 outMessage = self.encodeMessage(success=False, error=error)
             connection.send(outMessage.encode("ascii"))
-            isRunning = False
         connection.close()
 
     def handleUDPRequest(self):
-        isRunning = True
-        while isRunning:
+        print("anything")
+        while True:
             data, address = self.udpSocket.recvfrom(self.bufferSize)
             if not data:
                 break
@@ -102,21 +100,24 @@ class KeyValServer():
                 outMessage = self.encodeMessage(success=False, error=error)
 
             self.udpSocket.sendto(outMessage.encode("ascii"), address)
-            isRunning = False
 
     def run(self):
+        print("Running Server")
         self.openSockets()
         inputs = [self.tcpSocket, self.udpSocket, sys.stdin]
         isRunning = True
         while isRunning:
+            print("Oah")
             readyInputs, readyOutputs, readyExcepts = select.select(inputs, [], [])
             for readyInput in readyInputs:
+                print(readyInput)
                 if(readyInput == self.tcpSocket):
                     connection, address = self.tcpSocket.accept()
                     response = threading.Thread(target=self.handleRequest, args=(connection, address))
                     response.start()
                     self.threads.append(response)
                 elif(readyInput == self.udpSocket):
+                    print("Hey")
                     response = threading.Thread(target=self.handleUDPRequest, args=())
                     response.start()
                     self.threads.append(response)

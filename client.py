@@ -15,6 +15,8 @@ class KeyValClient():
         self.bufferSize = bufferSize
 
     def decodeMessage(self, binaryData):
+        if(type(binaryData) is tuple):
+            binaryData = binaryData[0]
         receivedString = binaryData.decode("ascii")
         message = json.loads(receivedString)
         return message
@@ -30,23 +32,23 @@ class KeyValClient():
         return message
 
     def send(self, message):
+        data = ""
         if (self.protocol == "TCP"):
             tcpSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tcpSocket.connect((self.serverAddress, self.port))
             tcpSocket.send(message.encode("ascii"))
             data = tcpSocket.recv(self.bufferSize)
             tcpSocket.close()
-            return data
         elif (self.protocol == "UDP"):
             udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            udpSocket.connect((self.serverAddress, self.port))
-            udpSocket.send(message.encode("ascii"))
-            data = udpSocket.recv(self.bufferSize)
+            udpSocket.sendto(message.encode("ascii"), (self.serverAddress, self.port))
+            data = udpSocket.recvfrom(self.bufferSize)
             udpSocket.close()
         elif (self.protocol == "RPC"):
             print("RPC not implemented")
         else:
             print(self.protocol + " is not a valid protcol")
+        return data
 
     def get(self, key):
         outMessage = self.encodeMessage(command="get", key=key)
@@ -76,7 +78,11 @@ class KeyValClient():
 def main():
     ip = "127.0.0.1"
     port = 5005
-    protocol = "TCP"
+    protocol = "UDP"
+    if(protocol == "TCP"):
+        port = 5005
+    elif(protocol == "UDP"):
+        port = 5006
     bufferSize = 1024
     testOperationsPath = "kvp-operations.csv"
 
