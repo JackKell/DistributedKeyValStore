@@ -6,6 +6,11 @@ setup:
 	bash -c "source env/bin/activate; \
 	pip install grpcio;"
 
+	@echo ''
+	@echo ''
+	@echo 'Everythings Works'
+	@echo 'Please run `source env/bin/activate`'
+
 clean:
 	if [[ "$(VIRTUAL_ENV)" != "" ]]; then deactivate; fi
 	rm -rf env
