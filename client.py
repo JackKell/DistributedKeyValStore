@@ -1,4 +1,6 @@
 #!./env/bin/python3
+
+# Imports
 from socket import socket
 from socket import AF_INET
 from socket import SOCK_STREAM
@@ -8,8 +10,15 @@ from json import dumps
 from csv import reader
 import grpc
 import distributedKeyValStore_pb2
+from sys import argv
 
-
+"""
+KeyValClient
+serverAddress: (string) the address of the server
+port: (int) the port number for communications
+bufferSize: (int) buffer size for sending information
+stub: the grpc stub object
+"""
 class KeyValClient():
     def __init__(self, serverAddress, port, protocol, bufferSize, stub):
         self.keyVal = {}
@@ -19,6 +28,7 @@ class KeyValClient():
         self.bufferSize = bufferSize
         self.stub = stub
 
+    # Decode message takes binary data and converts it to a python dictionary
     def decodeMessage(self, binaryData):
         if(type(binaryData) is tuple):
             binaryData = binaryData[0]
@@ -26,6 +36,7 @@ class KeyValClient():
         message = loads(receivedString)
         return message
 
+    # EncodeMessage takes string arugments and converts it to a JSON formatted string
     def encodeMessage(self, command="", key="", value="", error="", success=""):
         dictionary = {}
         dictionary["command"] = command
@@ -36,6 +47,7 @@ class KeyValClient():
         message = dumps(dictionary)
         return message
 
+    # sends a message to the server over the choosen transmission method
     def send(self, message):
         data = ""
         if (self.protocol == "TCP"):
@@ -53,6 +65,7 @@ class KeyValClient():
             print(self.protocol + " is not a valid protcol")
         return data
 
+    # sends a get request
     def get(self, key):
         value = ""
         success = False
@@ -70,6 +83,7 @@ class KeyValClient():
         else:
             print(str(key) + " not retrived")
 
+    # sends a put request
     def put(self, key, value):
         success = False
         if(self.protocol == "RPC"):
@@ -84,6 +98,7 @@ class KeyValClient():
         else:
             print(str(key) + ": " + str(value) + " not added")
 
+    # sends a delete request
     def delete(self, key):
         success = False
         if(self.protocol == "RPC"):
@@ -100,19 +115,17 @@ class KeyValClient():
 
 
 def main():
-    ip = "127.0.0.1"
-    port = 5005
-    protocol = "RPC"
+    arguments = argv[1:]
+    if (len(arguments) != 3):
+        print("client <serverAddress> <port> <transmissionMethod>")
+        print("<transmissionMethod> must equal:")
+        print(" - 'RPC'")
+        print(" - 'UDP'")
+        print(" - 'TCP'")
 
-    if(protocol == "TCP"):
-        port = 5005
-    elif(protocol == "UDP"):
-        port = 5006
-    elif(protocol == "RPC"):
-        port = 5007
-    else:
-        print(protocol + " is not a valid protocol")
-        return
+    ip = arguments[0]
+    port = int(arguments[1])
+    protocol = arguments[2].upper()
 
     bufferSize = 1024
     testOperationsPath = "kvp-operations.csv"
