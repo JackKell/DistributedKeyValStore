@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='distributedKeyValStore.proto',
   package='distributedkeyvalstore',
   syntax='proto3',
-  serialized_pb=_b('\n\x1c\x64istributedKeyValStore.proto\x12\x16\x64istributedkeyvalstore\"*\n\nGetRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0f\n\x07success\x18\x02 \x01(\x08\"7\n\x08GetReply\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0f\n\x07success\x18\x03 \x01(\x08\"9\n\nPutRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0f\n\x07success\x18\x03 \x01(\x08\"7\n\x08PutReply\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0f\n\x07success\x18\x03 \x01(\x08\"-\n\rDeleteRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0f\n\x07success\x18\x02 \x01(\x08\"+\n\x0b\x44\x65leteReply\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0f\n\x07success\x18\x02 \x01(\x08\x32\x8c\x02\n\x0bKeyValStore\x12P\n\x06getrpc\x12\".distributedkeyvalstore.GetRequest\x1a .distributedkeyvalstore.GetReply\"\x00\x12P\n\x06putrpc\x12\".distributedkeyvalstore.PutRequest\x1a .distributedkeyvalstore.PutReply\"\x00\x12Y\n\tdeleterpc\x12%.distributedkeyvalstore.DeleteRequest\x1a#.distributedkeyvalstore.DeleteReply\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x1c\x64istributedKeyValStore.proto\x12\x16\x64istributedkeyvalstore\"\x19\n\nGetRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"7\n\x08GetReply\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0f\n\x07success\x18\x03 \x01(\x08\"(\n\nPutRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"&\n\x08PutReply\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\x1c\n\rDeleteRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"+\n\x0b\x44\x65leteReply\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0f\n\x07success\x18\x02 \x01(\x08\x32\x8c\x02\n\x0bKeyValStore\x12P\n\x06getrpc\x12\".distributedkeyvalstore.GetRequest\x1a .distributedkeyvalstore.GetReply\"\x00\x12P\n\x06putrpc\x12\".distributedkeyvalstore.PutRequest\x1a .distributedkeyvalstore.PutReply\"\x00\x12Y\n\tdeleterpc\x12%.distributedkeyvalstore.DeleteRequest\x1a#.distributedkeyvalstore.DeleteReply\"\x00\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -40,13 +40,6 @@ _GETREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='success', full_name='distributedkeyvalstore.GetRequest.success', index=1,
-      number=2, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -60,7 +53,7 @@ _GETREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=56,
-  serialized_end=98,
+  serialized_end=81,
 )
 
 
@@ -104,8 +97,8 @@ _GETREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=100,
-  serialized_end=155,
+  serialized_start=83,
+  serialized_end=138,
 )
 
 
@@ -130,13 +123,6 @@ _PUTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='success', full_name='distributedkeyvalstore.PutRequest.success', index=2,
-      number=3, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -149,8 +135,8 @@ _PUTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=157,
-  serialized_end=214,
+  serialized_start=140,
+  serialized_end=180,
 )
 
 
@@ -175,13 +161,6 @@ _PUTREPLY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='success', full_name='distributedkeyvalstore.PutReply.success', index=2,
-      number=3, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -194,8 +173,8 @@ _PUTREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=216,
-  serialized_end=271,
+  serialized_start=182,
+  serialized_end=220,
 )
 
 
@@ -213,13 +192,6 @@ _DELETEREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='success', full_name='distributedkeyvalstore.DeleteRequest.success', index=1,
-      number=2, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -232,8 +204,8 @@ _DELETEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=273,
-  serialized_end=318,
+  serialized_start=222,
+  serialized_end=250,
 )
 
 
@@ -270,8 +242,8 @@ _DELETEREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=320,
-  serialized_end=363,
+  serialized_start=252,
+  serialized_end=295,
 )
 
 DESCRIPTOR.message_types_by_name['GetRequest'] = _GETREQUEST

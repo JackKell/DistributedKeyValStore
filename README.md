@@ -5,16 +5,27 @@
 ### General Setup
 ```
 make setup
-```
-```
 source env/bin/activate
 ```
-### Sever Setup
+#### Sever Setup
 ```
-python server.py "tcp port" "udp port" "rpc port"
+python server.py "port"
 ```
-### Client Setup
-Where transmission method must equal, tcp, udp, or rpc
+
+#### Client Setup
 ```
-python server.py "server ip address" "port number" "transmission method"
+python server.py "server ip address" "port number"
+```
+### Example
+#### On Server Nodes
+```
+make setup
+source env/bin/activate
+python server.py 5555
+```
+#### On Client Nodes
+```
+make setup
+source env/bin/activate
+python server.py 5555
 ```
