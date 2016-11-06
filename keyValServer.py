@@ -8,7 +8,7 @@ from threading import Thread
 from threading import Lock
 from sys import stdin
 from select import select
-import time
+from time import time
 from keyValNode import KeyValNode
 
 
@@ -23,7 +23,7 @@ class KeyValServer(KeyValNode):
         self.serverAddress = "127.0.0.1"
         self.tcpSocket = None
         self.threads = []
-        self.servers = []
+        self.servers = ["127.0.0.1"]
 
     # OpenSockets opens the sockets for both TCP and UDP
     # and sets self.tcpSocket and self.udpSocket for the server
@@ -33,39 +33,57 @@ class KeyValServer(KeyValNode):
         self.tcpSocket.bind((self.serverAddress, self.port))
         self.tcpSocket.listen(self.backlog)
 
-
-    def votePhase(self):
+    def twoFaceCommit(self, inMessage):
+        print("Two Face Commit")
+        voteCount = 0
         for server in self.servers:
-            print(server)
+            vote = False
+            while not vote:
+                print(1)
+                commitMessage = self.encodeMessage(command="commit")
+                print(2)
+                self.sendMessage(commitMessage, server)
+                print(3)
 
     # Handles a TCP Request by decoding the incoming message
-    # completing the given request and sending an encoded message
+    # completing the given request and sefr nding an encoded message
     # back to the sender
     def handleRequest(self, connection, address):
         isRunning = True
         while isRunning:
+            # Collect all the data from the connection
             data = connection.recv(self.bufferSize)
+            # If there is no more data then break the function
             if not data:
                 break
+            self.keyValLock.acquire()
             inMessage = self.decodeMessage(data)
             outMessage = ""
             command = inMessage["command"]
-            if command == "get":
+            if command == "commit":
+                print("Got Commit Message")
+                voteMessage = self.encodeMessage(command="vote", value=True)
+                severResponse = self.sendMessage(voteMessage, address)
+                print(severResponse["command"])
+            elif command == "get":
                 key = inMessage["key"]
                 value = self.get(key)
                 outMessage = self.encodeMessage(key=key, value=value, success=True)
             elif command == "put":
+                self.twoFaceCommit(inMessage)
                 key = inMessage["key"]
                 value = inMessage["value"]
                 success = self.put(key, value)
                 outMessage = self.encodeMessage(key=key, value=value, success=success)
             elif command == "delete":
+                self.twoFaceCommit(inMessage)
                 key = inMessage["key"]
                 success = self.delete(key)
                 outMessage = self.encodeMessage(key=key, success=success)
             else:
                 error = "No command called " + command
                 outMessage = self.encodeMessage(success=False, error=error)
+            self.keyValLock.release()
             connection.send(outMessage.encode("ascii"))
             isRunning = False
         connection.close()
@@ -95,25 +113,19 @@ class KeyValServer(KeyValNode):
 
     # retrives a value from the key value server based on a give key
     def get(self, key):
-        self.keyValLock.acquire()
         value = self.keyVal[key]
-        print("Sent " + key + " : " + value + " " + str(time.time() * 1000))
-        self.keyValLock.release()
+        # print("Sent " + key + " : " + value + " " + str(time() * 1000))
         return value
 
     # creates a new key-value pair in the key-value store
     def put(self, key, value):
-        self.keyValLock.acquire()
         self.keyVal[key] = value
-        print("Added " + key + " : " + value + " " + str(time.time() * 1000))
+        # print("Added " + key + " : " + value + " " + str(time() * 1000))
         testValue = self.keyVal[key]
-        self.keyValLock.release()
         return testValue == value
 
     # deletes a key from the key values store based on a given key
     def delete(self, key):
-        self.keyValLock.acquire()
         self.keyVal.pop('key', None)
-        print("Deleted " + key + " " + str(time.time() * 1000))
-        self.keyValLock.release()
+        # print("Deleted " + key + " " + str(time() * 1000))
         return True

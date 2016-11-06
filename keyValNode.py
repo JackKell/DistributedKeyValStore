@@ -11,7 +11,7 @@ class KeyValNode:
         self.port = port
         self.timeout = 5
         self.bufferSize = 1024
-        self.backlog = 10
+        self.backlog = 25
 
     # Decode message takes binary data and converts it to a python dictionary
     def decodeMessage(self, binaryData):
