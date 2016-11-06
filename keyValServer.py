@@ -23,7 +23,7 @@ class KeyValServer(KeyValNode):
         self.serverAddress = "127.0.0.1"
         self.tcpSocket = None
         self.threads = []
-        self.servers = ["127.0.0.1"]
+        self.servers = []
 
     # OpenSockets opens the sockets for both TCP and UDP
     # and sets self.tcpSocket and self.udpSocket for the server
@@ -70,13 +70,13 @@ class KeyValServer(KeyValNode):
                 value = self.get(key)
                 outMessage = self.encodeMessage(key=key, value=value, success=True)
             elif command == "put":
-                self.twoFaceCommit(inMessage)
+                # self.twoFaceCommit(inMessage)
                 key = inMessage["key"]
                 value = inMessage["value"]
                 success = self.put(key, value)
                 outMessage = self.encodeMessage(key=key, value=value, success=success)
             elif command == "delete":
-                self.twoFaceCommit(inMessage)
+                # self.twoFaceCommit(inMessage)
                 key = inMessage["key"]
                 success = self.delete(key)
                 outMessage = self.encodeMessage(key=key, success=success)
