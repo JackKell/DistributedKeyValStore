@@ -7,7 +7,7 @@ from keyValNode import KeyValNode
 # port: (int) the port number for communications
 class KeyValClient(KeyValNode):
     def __init__(self, serverAddress, port):
-        super().__init__(port)
+        KeyValNode.__init__(self, port)
         self.serverAddress = serverAddress
 
     # sends a get request

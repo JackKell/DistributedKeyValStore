@@ -17,7 +17,7 @@ from keyValNode import KeyValNode
 # port: (int) the port number for tcp communications
 class KeyValServer(KeyValNode):
     def __init__(self, port):
-        super().__init__(port)
+        KeyValNode.__init__(self, port)
         self.keyVal = {}
         self.keyValLock = Lock()
         self.serverAddress = "127.0.0.1"
