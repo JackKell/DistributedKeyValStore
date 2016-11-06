@@ -20,7 +20,7 @@ class KeyValServer(KeyValNode):
         KeyValNode.__init__(self, port)
         self.keyVal = {}
         self.keyValLock = Lock()
-        self.serverAddress = "127.0.0.1"
+        self.serverAddress = ""
         self.tcpSocket = None
         self.threads = []
         self.servers = []
