@@ -12,23 +12,21 @@ from sys import stdin
 from sys import argv
 from select import select
 import time
-from networkMessaging import encodeMessage
-from networkMessaging import decodeMessage
+from keyValNode import KeyValNode
 
 
 # KeyValServer class extends the KeyValStoreServicer class
 # serverAddress: (string) the local address of the server
 # port: (int) the port number for tcp communications
-class KeyValServer:
+class KeyValServer(KeyValNode):
     def __init__(self, port):
+        super().__init__(port)
         self.keyVal = {}
         self.keyValLock = Lock()
         self.serverAddress = "127.0.0.1"
-        self.port = port
-        self.bufferSize = 1024
-        self.backlog = 10
         self.tcpSocket = None
         self.threads = []
+        self.servers = []
 
     # OpenSockets opens the sockets for both TCP and UDP
     # and sets self.tcpSocket and self.udpSocket for the server
@@ -38,6 +36,11 @@ class KeyValServer:
         self.tcpSocket.bind((self.serverAddress, self.port))
         self.tcpSocket.listen(self.backlog)
 
+
+    def votePhase(self):
+        for server in self.servers:
+            print(server)
+
     # Handles a TCP Request by decoding the incoming message
     # completing the given request and sending an encoded message
     # back to the sender
@@ -45,28 +48,27 @@ class KeyValServer:
         isRunning = True
         while isRunning:
             data = connection.recv(self.bufferSize)
-
             if not data:
                 break
-            inMessage = decodeMessage(data)
+            inMessage = self.decodeMessage(data)
             outMessage = ""
             command = inMessage["command"]
             if command == "get":
                 key = inMessage["key"]
                 value = self.get(key)
-                outMessage = encodeMessage(key=key, value=value, success=True)
+                outMessage = self.encodeMessage(key=key, value=value, success=True)
             elif command == "put":
                 key = inMessage["key"]
                 value = inMessage["value"]
                 success = self.put(key, value)
-                outMessage = encodeMessage(key=key, value=value, success=success)
+                outMessage = self.encodeMessage(key=key, value=value, success=success)
             elif command == "delete":
                 key = inMessage["key"]
                 success = self.delete(key)
-                outMessage = encodeMessage(key=key, success=success)
+                outMessage = self.encodeMessage(key=key, success=success)
             else:
                 error = "No command called " + command
-                outMessage = encodeMessage(success=False, error=error)
+                outMessage = self.encodeMessage(success=False, error=error)
             connection.send(outMessage.encode("ascii"))
             isRunning = False
         connection.close()
@@ -124,7 +126,7 @@ def main():
     # Get all but the first argument
     arguments = argv[1:]
     tcpPort = 0
-    if len(arguments) != 2:
+    if len(arguments) != 1:
         print("server <tcpPort>")
         tcpPort = 5557
     else:
