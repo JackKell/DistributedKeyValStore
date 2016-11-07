@@ -33,17 +33,12 @@ class KeyValServer(KeyValNode):
         self.tcpSocket.bind((self.serverAddress, self.port))
         self.tcpSocket.listen(self.backlog)
 
-    def twoFaceCommit(self, inMessage):
-        print("Two Face Commit")
+    def twoPhaseCommit(self, inMessage):
+        print("Two Phase Commit")
         voteCount = 0
         for server in self.servers:
-            vote = False
-            while not vote:
-                print(1)
-                commitMessage = self.encodeMessage(command="commit")
-                print(2)
-                self.sendMessage(commitMessage, server)
-                print(3)
+            inMessage["isCommit"] = False
+            self.sendMessage(inMessage, server)
 
     # Handles a TCP Request by decoding the incoming message
     # completing the given request and sefr nding an encoded message
@@ -53,36 +48,40 @@ class KeyValServer(KeyValNode):
         while isRunning:
             # Collect all the data from the connection
             data = connection.recv(self.bufferSize)
-            # If there is no more data then break the function
+            # If there is no more data then break the loop
             if not data:
                 break
+
             self.keyValLock.acquire()
             inMessage = self.decodeMessage(data)
             outMessage = ""
             command = inMessage["command"]
-            if command == "commit":
-                print("Got Commit Message")
-                voteMessage = self.encodeMessage(command="vote", value=True)
-                severResponse = self.sendMessage(voteMessage, address)
-                print(severResponse["command"])
-            elif command == "get":
+            doTwoPhaseCommit = True
+
+            if bool(inMessage["isCommit"]):
+                doTwoPhaseCommit = False
+
+            if command == "get":
                 key = inMessage["key"]
                 value = self.get(key)
                 outMessage = self.encodeMessage(key=key, value=value, success=True)
             elif command == "put":
-                # self.twoFaceCommit(inMessage)
+                if doTwoPhaseCommit:
+                    self.twoPhaseCommit(inMessage)
                 key = inMessage["key"]
                 value = inMessage["value"]
                 success = self.put(key, value)
                 outMessage = self.encodeMessage(key=key, value=value, success=success)
             elif command == "delete":
-                # self.twoFaceCommit(inMessage)
+                if doTwoPhaseCommit:
+                    self.twoPhaseCommit(inMessage)
                 key = inMessage["key"]
                 success = self.delete(key)
                 outMessage = self.encodeMessage(key=key, success=success)
             else:
                 error = "No command called " + command
                 outMessage = self.encodeMessage(success=False, error=error)
+
             self.keyValLock.release()
             connection.send(outMessage.encode("ascii"))
             isRunning = False
