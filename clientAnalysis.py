@@ -22,8 +22,8 @@ def main():
     keyValClient = KeyValClient(serverAddress, port)
 
     putcsv = open("output/put.csv", "w")
-    getcsv = open("output/put.csv", "w")
-    deletecsv = open("output/put.csv", "w")
+    getcsv = open("output/get.csv", "w")
+    deletecsv = open("output/delete.csv", "w")
 
     putwriter = csv.writer(putcsv)
     getwriter = csv.writer(getcsv)
