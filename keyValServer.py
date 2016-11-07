@@ -58,11 +58,11 @@ class KeyValServer(KeyValNode):
             inMessage = self.decodeMessage(data)
             outMessage = ""
             command = inMessage["command"]
-            doTwoPhaseCommit = True
-            
-            print(bool(inMessage["isCommit"]))
+            doTwoPhaseCommit = False
+
+            print(inMessage["isCommit"])
             if bool(inMessage["isCommit"]):
-                doTwoPhaseCommit = False
+                doTwoPhaseCommit = True
 
             if command == "get":
                 key = inMessage["key"]
@@ -90,7 +90,7 @@ class KeyValServer(KeyValNode):
             isRunning = False
         connection.close()
 
-    # The main loop for the server delagates handling of all requests
+    # The main loop for the server delegates handling of all requests
     def run(self):
         self.openSocket()
         inputs = [self.tcpSocket, stdin]
@@ -113,7 +113,7 @@ class KeyValServer(KeyValNode):
         for response in self.threads:
             response.join()
 
-    # retrives a value from the key value server based on a give key
+    # retrieves a value from the key value server based on a give key
     def get(self, key):
         value = self.keyVal[key]
         print("Sent " + key + " : " + value + " " + str(time() * 1000))
