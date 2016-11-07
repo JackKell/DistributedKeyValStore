@@ -1,5 +1,6 @@
 # Imports
 from socket import socket
+from socket import gethostname
 from socket import AF_INET
 from socket import SOCK_STREAM
 from socket import SOL_SOCKET
@@ -37,8 +38,9 @@ class KeyValServer(KeyValNode):
         print("Two Phase Commit")
         voteCount = 0
         for server in self.servers:
-            inMessage["isCommit"] = False
-            self.sendMessage(inMessage, server)
+            if server != gethostname():
+                inMessage["isCommit"] = False
+                self.sendMessage(inMessage, server)
 
     # Handles a TCP Request by decoding the incoming message
     # completing the given request and sefr nding an encoded message
@@ -113,18 +115,18 @@ class KeyValServer(KeyValNode):
     # retrives a value from the key value server based on a give key
     def get(self, key):
         value = self.keyVal[key]
-        # print("Sent " + key + " : " + value + " " + str(time() * 1000))
+        print("Sent " + key + " : " + value + " " + str(time() * 1000))
         return value
 
     # creates a new key-value pair in the key-value store
     def put(self, key, value):
         self.keyVal[key] = value
-        # print("Added " + key + " : " + value + " " + str(time() * 1000))
+        print("Added " + key + " : " + value + " " + str(time() * 1000))
         testValue = self.keyVal[key]
         return testValue == value
 
     # deletes a key from the key values store based on a given key
     def delete(self, key):
         self.keyVal.pop('key', None)
-        # print("Deleted " + key + " " + str(time() * 1000))
+        print("Deleted " + key + " " + str(time() * 1000))
         return True
