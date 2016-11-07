@@ -40,7 +40,13 @@ class KeyValServer(KeyValNode):
         for server in self.servers:
             if server != gethostname():
                 inMessage["isCommit"] = False
-                self.sendMessage(inMessage, server)
+                outSeverMessage = self.encodeMessage(command=inMessage["command"],
+                                                     value=inMessage["value"],
+                                                     key=inMessage["key"],
+                                                     error=inMessage["error"],
+                                                     success=inMessage["success"],
+                                                     isCommit=inMessage["isCommit"])
+                self.sendMessage(outSeverMessage, server)
 
     # Handles a TCP Request by decoding the incoming message
     # completing the given request and sefr nding an encoded message
