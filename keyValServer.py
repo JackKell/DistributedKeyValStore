@@ -59,7 +59,8 @@ class KeyValServer(KeyValNode):
             outMessage = ""
             command = inMessage["command"]
             doTwoPhaseCommit = True
-
+            
+            print(bool(inMessage["isCommit"]))
             if bool(inMessage["isCommit"]):
                 doTwoPhaseCommit = False
 
