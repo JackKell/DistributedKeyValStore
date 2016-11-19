@@ -12,7 +12,7 @@ class KeyValClient(KeyValNode):
 
     # sends a get request
     def get(self, key):
-        outMessage = self.encodeMessage(command="get", key=key, isCommit=True)
+        outMessage = self.encodeMessage(command="get", key=key)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         value = inMessage["value"]
         success = bool(inMessage["success"])
@@ -24,7 +24,7 @@ class KeyValClient(KeyValNode):
 
     # sends a put request
     def put(self, key, value):
-        outMessage = self.encodeMessage(command="put", key=key, value=value, isCommit=True)
+        outMessage = self.encodeMessage(command="put", key=key, value=value)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         success = bool(inMessage["success"])
 
@@ -37,7 +37,7 @@ class KeyValClient(KeyValNode):
     def delete(self, key):
         success = False
 
-        outMessage = self.encodeMessage(command="delete", key=key, isCommit=True)
+        outMessage = self.encodeMessage(command="delete", key=key)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         success = bool(inMessage["success"])
 

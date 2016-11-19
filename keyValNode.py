@@ -21,14 +21,14 @@ class KeyValNode:
         return loads(receivedString)
 
     # EncodeMessage takes string arguments and converts it to a JSON formatted string
-    def encodeMessage(self, command="", key="", value="", error="", success="", isCommit=True):
+    def encodeMessage(self, command=None, key=None, value=None, error=None, success=None, clock=None):
         dictionary = dict()
         dictionary["command"] = command
         dictionary["key"] = key
         dictionary["value"] = value
         dictionary["success"] = success
         dictionary["error"] = error
-        dictionary["isCommit"] = isCommit
+        dictionary["clock"] = clock
         return dumps(dictionary)
 
     # sends a message to the server

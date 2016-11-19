@@ -16,14 +16,16 @@ def main():
         tcpPort = int(arguments[0])
 
     keyValServer = KeyValServer(tcpPort)
-    keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]
+    # keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]
+    keyValServer.servers = ["127.0.0.1"]
 
     print("Press Ctrl-c to end server")
 
     try:
-        keyValServer.run()
+        keyValServer.start()
     except KeyboardInterrupt:
         print("\nClosing Server Have A Nice Day")
+        keyValServer.stop()
 
 
 if __name__ == '__main__':
