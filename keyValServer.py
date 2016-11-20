@@ -110,74 +110,114 @@ class KeyValServer(KeyValNode):
                 proposerCommands = ["promise", "accepted"]
                 acceptorCommands = ["prepare", "accept"]
                 learnerCommands = ["accepted"]
+
                 if command in sessionCommands:
-                    print("sent", command, "job to session queue")
+                    # increment proposal number (clock) and send to sessions queue
                     self.clock += 1
                     self.sessions.put((connection, address, request, self.clock))
+                    print("sent", command, "job to session queue")
                 if command in proposerCommands:
                     # send to proposer queue
-                    print("sent", command, "job to proposer")
                     self.proposerJobs.put((connection, address, request))
+                    print("sent", command, "job to proposer")
                 if command in acceptorCommands:
                     # send to acceptor queue
-                    print("sent", command, "job to acceprot")
                     self.acceptorJobs.put((connection, address, request))
+                    print("sent", command, "job to acceptor")
                 if command in learnerCommands:
                     # send to learner queue
-                    print("sent", command, "job to learner")
                     self.learnerJobs.put((connection, address, request))
-                self.requests.task_done()
+                    print("sent", command, "job to learner")
+
+                self.requests.task_done() # Tell the queue we are done with this element
 
     def __proposer(self):
         promises = []
         accepteds = []
         sentPrepares = False
+        sentAccepts = False
         needJob = True
         reachedQuorum = False
         clientConnection = None
         clientAddress = None
         clientRequest = None
-        clock = None
+        clock = None # Used as Proposal Number
+
+        # Get a client command, do all paxos steps for it, flush session, repeat
 
         while not self.stopEvent.is_set():
-            # if need job, get job
+            # if we need a job (a client command)
             if needJob == True:
+                # and there are jobs to get
                 if not self.sessions.empty():
-                    promises = []
-                    accepteds = []
-                    sentPrepares = False
-                    needJob = False
-                    reachedQuorum = False
+                    # ..get a job!
+                    promises = [] # Flush old promise information
+                    accepteds = [] # Flush old accepteds information
+                    sentPrepares = False # We have yet to send prepare requests
+                    sentAccepts = False # We have yet to send accept requests
+                    needJob = False # We no longer need a job
+                    reachedQuorum = False # No quorum yet
+                    # Get the clint info as well as proposal number
                     clientConnection, clientAddress, clientRequest, clock = self.sessions.get()
-                    print("Reached need job stuff")
+                    print("Proposer has aquired a new job")
+
+            # otherwise, we already have a job, so:
             else:
+                # if we haven't sent the prepare requests yet..
                 if not sentPrepares:
-                    # Send prepares
+                    # ..send the prepare requests!
                     print("sending prepare messages")
                     prepareMessage = self.encodeMessage(command="prepare", clock=clock)
+
+                    # Does this send to itself too?
                     for server in self.servers:
                         tcpSocket = socket(AF_INET, SOCK_STREAM)
                         tcpSocket.connect((server, self.port))
                         tcpSocket.settimeout(self.timeout)
                         tcpSocket.send(prepareMessage.encode("ascii"))
                     sentPrepares = True
+
+                # if we have any acks..
                 if not self.proposerJobs.empty():
+                    # ..get the ack information
                     serverConnection, serverAddress, serverRequest = self.proposerJobs.get()
                     command = serverRequest["command"]
+
+                    # append it to the appropriate list based on command
                     if command == "promise":
                         promises.append((serverConnection, serverAddress, serverRequest))
                     elif command == "accepted":
                         accepteds.append((serverConnection, serverAddress, serverRequest))
+
+                    # Since we got just got an ack, lets act on it!
+
+                    # If we are still waiting for a quorum..
                     if not reachedQuorum:
+                        # ..check if we have a quorum now
                         if (len(promises) / len(self.servers)) > 0.5:
-                            # TODO: fix this part
+                            reachedQuorum = True # set that we have a quorum
+
+                            # do stuff
+
                             highestPromise = promises[0]
                             for index in range:
                                 pass
 
-            # else, do we have quorum
+                    # otherwise, we already have a quorum and must commence with phase 2,
+                    else:
+                        # So send the accept requests to those which have promised!
+                        print("sending accept requests")
+                        acceptMessage = self.encodeMessage(command="accept", clock=clock) # NOTE need clock?
 
-            # if we have a quorum - senda accepts
+                        # Does this send to itself too?
+                        for server in self.servers:
+                            tcpSocket = socket(AF_INET, SOCK_STREAM)
+                            tcpSocket.connect((server, self.port))
+                            tcpSocket.settimeout(self.timeout)
+                            tcpSocket.send(acceptMessage.encode("ascii"))
+                        sentAccepts = True
+
+
 
 
     def __acceptor(self):
