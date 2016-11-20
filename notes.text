@@ -1,0 +1,22 @@
+Proposer
+    1.) Chooses a new proposal number n
+    2.) Broadcasts Prepare(n) to all servers
+    4.) When responses received from majority
+        If any acceptedValues returned, replace value with acceptedValue for highest acceptedProposal
+    5.) Broadcast Accept(n, value) to all servers
+    7.) When responses received from majority:
+        - Any rejections result > n goto(step 1) (abort)
+        - Other wise value is chosen
+
+Acceptor
+    3.) Respond to Prepare(n)
+    if n > minProposal:
+        minProposal = n
+    return(acceptedProposal, acceptedValue)
+    6.) Respond to Accept(n, value):
+        if n >= minProposal:
+            acceptedProposal = minProposal = n
+            acceptedValue = value
+
+ Learner
+    7.) ??????????

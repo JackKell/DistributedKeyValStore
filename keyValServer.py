@@ -23,7 +23,7 @@ class KeyValServer(KeyValNode):
     def __init__(self, port):
         KeyValNode.__init__(self, port)
         self.keyVal = dict()
-        self.keyValLock = Lock()
+        self.__keyValLock = Lock()
         self.serverAddress = ""
         self.tcpSocket = None
         self.servers = list()
@@ -43,53 +43,6 @@ class KeyValServer(KeyValNode):
         self.numberOfRequestHandlers = 10
         self.clock = 0
 
-    """
-    def handleRequest(self, connection, address):
-        isRunning = True
-        while isRunning:
-            # Collect all the data from the connection
-            data = connection.recv(self.bufferSize)
-            # If there is no more data then break the loop
-            if not data:
-                break
-
-            self.keyValLock.acquire()
-            inMessage = self.decodeMessage(data)
-            outMessage = ""
-            command = inMessage["command"]
-            doTwoPhaseCommit = False
-
-            print(inMessage["isCommit"])
-            if bool(inMessage["isCommit"]):
-                doTwoPhaseCommit = True
-
-            if command == "get":
-                key = inMessage["key"]
-                value = self.get(key)
-                outMessage = self.encodeMessage(key=key, value=value, success=True)
-            elif command == "put":
-                if doTwoPhaseCommit:
-                    self.twoPhaseCommit(inMessage)
-                key = inMessage["key"]
-                value = inMessage["value"]
-                success = self.put(key, value)
-                outMessage = self.encodeMessage(key=key, value=value, success=success)
-            elif command == "delete":
-                if doTwoPhaseCommit:
-                    self.twoPhaseCommit(inMessage)
-                key = inMessage["key"]
-                success = self.delete(key)
-                outMessage = self.encodeMessage(key=key, success=success)
-            else:
-                error = "No command called " + command
-                outMessage = self.encodeMessage(success=False, error=error)
-
-            self.keyValLock.release()
-            connection.send(outMessage.encode("ascii"))
-            isRunning = False
-        connection.close()
-    """
-
     def __connectionHandler(self):
         while not self.stopEvent.is_set():
             if not self.connections.empty():
@@ -104,23 +57,22 @@ class KeyValServer(KeyValNode):
             if not self.requests.empty():
                 connection, address, request = self.requests.get()
                 command = request["command"]
-                print(command)
 
                 sessionCommands = ["get", "put", "delete"]
                 proposerCommands = ["promise", "accepted"]
                 acceptorCommands = ["prepare", "accept"]
                 learnerCommands = ["accepted"]
+
                 if command in sessionCommands:
                     print("sent", command, "job to session queue")
-                    self.clock += 1
-                    self.sessions.put((connection, address, request, self.clock))
+                    self.sessions.put((connection, address, request))
                 if command in proposerCommands:
                     # send to proposer queue
                     print("sent", command, "job to proposer")
                     self.proposerJobs.put((connection, address, request))
                 if command in acceptorCommands:
                     # send to acceptor queue
-                    print("sent", command, "job to acceprot")
+                    print("sent", command, "job to acceptor")
                     self.acceptorJobs.put((connection, address, request))
                 if command in learnerCommands:
                     # send to learner queue
@@ -129,56 +81,97 @@ class KeyValServer(KeyValNode):
                 self.requests.task_done()
 
     def __proposer(self):
+        def __sendPrepare(clock, address):
+            print("sending prepare messages to", address)
+            prepareMessage = self.encodeMessage(command="prepare", clock=clock)
+            tempSocket = socket(AF_INET, SOCK_STREAM)
+            tempSocket.connect((address, self.port))
+            tempSocket.settimeout(self.timeout)
+            tempSocket.send(prepareMessage.encode("ascii"))
+
+        def __sendAccept(clock, value, address):
+            print("sending accept messages to", address)
+            acceptMessage = self.encodeMessage(command="accept", value=value, clock=clock)
+            tempSocket = socket(AF_INET, SOCK_STREAM)
+            tempSocket.connect((server, self.port))
+            tempSocket.settimeout(self.timeout)
+            tempSocket.send(acceptMessage.encode("ascii"))
+
         promises = []
         accepteds = []
         sentPrepares = False
+        sentAccepts = False
         needJob = True
-        reachedQuorum = False
+        reachedPromiseQuorum = False
+        reachedAcceptedQuorum = False
         clientConnection = None
         clientAddress = None
         clientRequest = None
         clock = None
+        acceptedClock = None
+        acceptedValue = None
 
+        # Proposer
         while not self.stopEvent.is_set():
             # if need job, get job
-            if needJob == True:
+            if needJob:
+                # 1.) Chooses a new proposal number n
                 if not self.sessions.empty():
                     promises = []
                     accepteds = []
                     sentPrepares = False
                     needJob = False
-                    reachedQuorum = False
-                    clientConnection, clientAddress, clientRequest, clock = self.sessions.get()
-                    print("Reached need job stuff")
+                    reachedPromiseQuorum = False
+                    reachedAcceptedQuorum = False
+                    clientConnection, clientAddress, clientRequest = self.sessions.get()
+                    acceptedValue = clientRequest
             else:
-                if not sentPrepares:
-                    # Send prepares
-                    print("sending prepare messages")
-                    prepareMessage = self.encodeMessage(command="prepare", clock=clock)
-                    for server in self.servers:
-                        tcpSocket = socket(AF_INET, SOCK_STREAM)
-                        tcpSocket.connect((server, self.port))
-                        tcpSocket.settimeout(self.timeout)
-                        tcpSocket.send(prepareMessage.encode("ascii"))
-                    sentPrepares = True
+                # put promises and accepted messages into the proposer job queue
                 if not self.proposerJobs.empty():
                     serverConnection, serverAddress, serverRequest = self.proposerJobs.get()
+                    clock = serverRequest["clock"]
                     command = serverRequest["command"]
                     if command == "promise":
                         promises.append((serverConnection, serverAddress, serverRequest))
                     elif command == "accepted":
                         accepteds.append((serverConnection, serverAddress, serverRequest))
-                    if not reachedQuorum:
-                        if (len(promises) / len(self.servers)) > 0.5:
-                            # TODO: fix this part
-                            highestPromise = promises[0]
-                            for index in range:
-                                pass
+                    self.proposerJobs.task_done()
 
-            # else, do we have quorum
+                # 2.) Broadcasts Prepare(n) to all servers
+                if not sentPrepares:
+                    for server in self.servers:
+                        __sendPrepare(clock, server)
+                    sentPrepares = True
 
-            # if we have a quorum - senda accepts
+                # 4.) When responses received from majority
+                #     If any acceptedValues returned, replace value with acceptedValue for highest acceptedProposal
+                if not reachedPromiseQuorum:
+                    quorumSize = len(self.servers)
+                    if len(promises) >= (quorumSize // 2 + 1):
+                        greatestClock = clock
+                        for index in range(0, len(promises)):
+                            currentConnection, currentAddress, currentValue = promises[index]
+                            currentClock = currentValue["clock"]
+                            if currentClock > greatestClock:
+                                greatestValue = currentValue
+                                greatestClock = currentClock
+                        acceptedValue = greatestValue
 
+                # 5.) Broadcast Accept(n, value) to all servers
+                if not sentAccepts and reachedPromiseQuorum:
+                    for server in self.servers:
+                        __sendAccept(acceptedValue, clock, server)
+                    sentAccepts = True
+
+                # 7.) When responses received from majority of accepted messages:
+                #     - Any rejections result > n go to(step 1) (abort)
+                #     - Other wise value is chosen
+                if reachedAcceptedQuorum:
+                    quorumSize = len(self.servers)
+                    if len(promises) >= (quorumSize // 2 + 1):
+                        serverConnection, serverAddress, serverRequest = promises[0]
+                        for index in range(1, len(promises)):
+                            pass
 
     def __acceptor(self):
         while not self.stopEvent.is_set():
@@ -223,10 +216,6 @@ class KeyValServer(KeyValNode):
         self.learner.name = "learner"
         self.learner.start()
 
-    def start(self):
-        self.__initialize()
-        self.__run()
-
     # The main loop for the server
     def __run(self):
         inputs = [self.tcpSocket, stdin]
@@ -238,10 +227,6 @@ class KeyValServer(KeyValNode):
                     self.connections.put((connection, address))
                 elif readyInput == stdin:
                     self.stop()
-
-    # Gracefully stops the server
-    def stop(self):
-        self.stopEvent.set()
 
     # retrieves a value from the key value server based on a give key
     def __get(self, key):
@@ -262,6 +247,15 @@ class KeyValServer(KeyValNode):
         print("Deleted " + key + " " + str(time() * 1000))
         return True
 
+    # starts the server and starts all worker threads and main server thread
+    def start(self):
+        self.__initialize()
+        self.__run()
+
+    # Gracefully stops the server
+    def stop(self):
+        self.stopEvent.set()
+
 """
     delete this comment
     proposer
@@ -271,13 +265,11 @@ class KeyValServer(KeyValNode):
         receives
             promise
             accepted
-            rejected
 
     acceptor
         sends
             promise
             accepted
-            rejected
         receives
             prepare
             accept
@@ -288,4 +280,50 @@ class KeyValServer(KeyValNode):
         receives
             commits
 
+    """
+"""
+    def handleRequest(self, connection, address):
+        isRunning = True
+        while isRunning:
+            # Collect all the data from the connection
+            data = connection.recv(self.bufferSize)
+            # If there is no more data then break the loop
+            if not data:
+                break
+
+            self.keyValLock.acquire()
+            inMessage = self.decodeMessage(data)
+            outMessage = ""
+            command = inMessage["command"]
+            doTwoPhaseCommit = False
+
+            print(inMessage["isCommit"])
+            if bool(inMessage["isCommit"]):
+                doTwoPhaseCommit = True
+
+            if command == "get":
+                key = inMessage["key"]
+                value = self.get(key)
+                outMessage = self.encodeMessage(key=key, value=value, success=True)
+            elif command == "put":
+                if doTwoPhaseCommit:
+                    self.twoPhaseCommit(inMessage)
+                key = inMessage["key"]
+                value = inMessage["value"]
+                success = self.put(key, value)
+                outMessage = self.encodeMessage(key=key, value=value, success=success)
+            elif command == "delete":
+                if doTwoPhaseCommit:
+                    self.twoPhaseCommit(inMessage)
+                key = inMessage["key"]
+                success = self.delete(key)
+                outMessage = self.encodeMessage(key=key, success=success)
+            else:
+                error = "No command called " + command
+                outMessage = self.encodeMessage(success=False, error=error)
+
+            self.keyValLock.release()
+            connection.send(outMessage.encode("ascii"))
+            isRunning = False
+        connection.close()
     """
