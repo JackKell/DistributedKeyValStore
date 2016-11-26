@@ -16,7 +16,7 @@ class KeyValClient(KeyValNode):
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         value = inMessage["value"]
         success = bool(inMessage["success"])
-        clock = inMessage["success"]
+        clock = inMessage["clock"]
 
         if success:
             print(str(key), ":", str(value), "retrieved", "clock", clock)
@@ -28,7 +28,7 @@ class KeyValClient(KeyValNode):
         outMessage = self.encodeMessage(command="put", key=key, value=value)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         success = bool(inMessage["success"])
-        clock = inMessage["success"]
+        clock = inMessage["clock"]
 
         if success:
             print(str(key), ":", str(value), "added", "clock", clock)
@@ -42,7 +42,7 @@ class KeyValClient(KeyValNode):
         outMessage = self.encodeMessage(command="delete", key=key)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         success = bool(inMessage["success"])
-        clock = inMessage["success"]
+        clock = inMessage["clock"]
 
         if success:
             print(str(key), " removed", "clock", clock)
