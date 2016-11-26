@@ -142,7 +142,7 @@ class KeyValServer(KeyValNode):
                     print("proposer: clock", clock)
             else:
                 # put promises and accepted messages into the proposer job queue
-                if not self.proposerJobs.empty():
+                while not self.proposerJobs.empty():
                     serverConnection, serverAddress, serverRequest = self.proposerJobs.get()
                     command = serverRequest["command"]
                     requestClock = serverRequest["clock"]
