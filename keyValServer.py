@@ -169,7 +169,7 @@ class KeyValServer(KeyValNode):
                 #     If any acceptedValues returned, replace value with acceptedValue for highest acceptedProposal
                 if not reachedPromiseQuorum:
                     quorumSize = len(self.servers)
-                    if len(promises) >= (quorumSize // 2 + 1):
+                    if len(promises) >= (quorumSize // 2 + 2):
                         reachedPromiseQuorum = True
                         # greatestClock = clock
                         # for index in range(0, len(promises)):
@@ -192,7 +192,7 @@ class KeyValServer(KeyValNode):
                 #     - Other wise value is chosen
                 if not reachedAcceptedQuorum:
                     quorumSize = len(self.servers)
-                    if len(accepteds) >= (quorumSize // 2 + 1):
+                    if len(accepteds) >= (quorumSize // 2 + 2):
                         reachedAcceptedQuorum = True
 
                 if not sentCommits and reachedAcceptedQuorum:
@@ -204,7 +204,7 @@ class KeyValServer(KeyValNode):
 
                 if sentCommits:
                     quorumSize = len(self.servers)
-                    if len(committeds) >= (quorumSize // 2):
+                    if len(committeds) >= (quorumSize // 2 + 2):
 
                         commmitedRequest = committeds[0][2]
                         outmessage = self.encodeMessage(command="reply",
