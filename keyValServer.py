@@ -139,6 +139,7 @@ class KeyValServer(KeyValNode):
                     clientConnection, clientAddress, clientRequest = self.sessions.get()
                     acceptedValue = clientRequest
                     clock += 1
+                    print("proposer: clock", clock)
             else:
                 # put promises and accepted messages into the proposer job queue
                 if not self.proposerJobs.empty():
