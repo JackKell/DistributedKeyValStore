@@ -205,7 +205,8 @@ class KeyValServer(KeyValNode):
                         outmessage = self.encodeMessage(command="reply",
                                                         key=commmitedRequest["key"],
                                                         value=commmitedRequest["value"],
-                                                        success=commmitedRequest["success"])
+                                                        success=commmitedRequest["success"],
+                                                        clock=commmitedRequest["clock"])
                         clientConnection.send(outmessage.encode("ascii"))
                         needJob = True
 

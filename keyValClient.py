@@ -16,22 +16,24 @@ class KeyValClient(KeyValNode):
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         value = inMessage["value"]
         success = bool(inMessage["success"])
+        clock = inMessage["success"]
 
         if success:
-            print(str(key), ":", str(value), "retrieved")
+            print(str(key), ":", str(value), "retrieved", "clock", clock)
         else:
-            print(str(key), "not retrieved")
+            print(str(key), "not retrieved", "clock", clock)
 
     # sends a put request
     def put(self, key, value):
         outMessage = self.encodeMessage(command="put", key=key, value=value)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         success = bool(inMessage["success"])
+        clock = inMessage["success"]
 
         if success:
-            print(str(key), ":", str(value), "added")
+            print(str(key), ":", str(value), "added", "clock", clock)
         else:
-            print(str(key), ":", str(value), "not added")
+            print(str(key), ":", str(value), "not added", "clock", clock)
 
     # sends a delete request
     def delete(self, key):
@@ -40,8 +42,9 @@ class KeyValClient(KeyValNode):
         outMessage = self.encodeMessage(command="delete", key=key)
         inMessage = self.sendMessage(outMessage, self.serverAddress)
         success = bool(inMessage["success"])
+        clock = inMessage["success"]
 
         if success:
-            print(str(key), " removed")
+            print(str(key), " removed", "clock", clock)
         else:
-            print(str(key), " not removed")
+            print(str(key), " not removed", "clock", clock)
