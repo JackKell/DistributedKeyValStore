@@ -145,12 +145,16 @@ class KeyValServer(KeyValNode):
                 if not self.proposerJobs.empty():
                     serverConnection, serverAddress, serverRequest = self.proposerJobs.get()
                     command = serverRequest["command"]
+                    requestClock = serverRequest["clock"]
                     if command == "promise":
                         promises.append((serverConnection, serverAddress, serverRequest))
                     elif command == "accepted":
                         accepteds.append((serverConnection, serverAddress, serverRequest))
                     elif command == "committed":
-                        committeds.append((serverConnection, serverAddress, serverRequest))
+                        if requestClock == clock:
+                            committeds.append((serverConnection, serverAddress, serverRequest))
+                        else:
+                            print("dropping old clock,", requestClock, "current clock:", clock)
                     self.proposerJobs.task_done()
 
                 # 2.) Broadcasts Prepare(n) to all servers
