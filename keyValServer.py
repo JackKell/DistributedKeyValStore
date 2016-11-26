@@ -157,6 +157,7 @@ class KeyValServer(KeyValNode):
                             print("dropping old clock,", requestClock, "current clock:", clock)
                     self.proposerJobs.task_done()
 
+                sleep(0.05)
                 # 2.) Broadcasts Prepare(n) to all servers
                 if not sentPrepares:
                     print("proposer: broadcast prepare messages")
