@@ -192,7 +192,7 @@ class KeyValServer(KeyValNode):
                 #     - Other wise value is chosen
                 if not reachedAcceptedQuorum:
                     quorumSize = len(self.servers)
-                    if len(accepteds) >= (quorumSize // 2 + 2):
+                    if len(accepteds) >= (quorumSize // 2 + 1):
                         reachedAcceptedQuorum = True
 
                 if not sentCommits and reachedAcceptedQuorum:
@@ -204,7 +204,7 @@ class KeyValServer(KeyValNode):
 
                 if sentCommits:
                     quorumSize = len(self.servers)
-                    if len(committeds) >= (quorumSize // 2 + 2):
+                    if len(committeds) >= (quorumSize // 2 + 1):
 
                         commmitedRequest = committeds[0][2]
                         outmessage = self.encodeMessage(command="reply",
