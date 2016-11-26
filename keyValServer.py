@@ -198,7 +198,8 @@ class KeyValServer(KeyValNode):
                         __sendCommit(clock, acceptedValue, learnerAddress)
 
                 if sentCommits:
-                    if (len(committeds) > 0):
+                    quorumSize = len(self.servers)
+                    if len(committeds) >= (quorumSize // 2 + 1):
                         print(committeds)
                         commmitedRequest = committeds[0][2]
                         outmessage = self.encodeMessage(command="reply",
