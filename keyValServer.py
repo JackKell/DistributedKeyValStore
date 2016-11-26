@@ -144,7 +144,6 @@ class KeyValServer(KeyValNode):
                 # put promises and accepted messages into the proposer job queue
                 if not self.proposerJobs.empty():
                     serverConnection, serverAddress, serverRequest = self.proposerJobs.get()
-                    clock = serverRequest["clock"]
                     command = serverRequest["command"]
                     if command == "promise":
                         promises.append((serverConnection, serverAddress, serverRequest))
