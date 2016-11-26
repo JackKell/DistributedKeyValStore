@@ -199,6 +199,7 @@ class KeyValServer(KeyValNode):
 
                 if sentCommits:
                     if (len(committeds) > 0):
+                        print(committeds)
                         commmitedRequest = committeds[0][2]
                         outmessage = self.encodeMessage(command="reply",
                                                         key=commmitedRequest["key"],
@@ -206,7 +207,6 @@ class KeyValServer(KeyValNode):
                                                         success=commmitedRequest["success"])
                         clientConnection.send(outmessage.encode("ascii"))
                         needJob = True
-
 
     def __acceptor(self):
         def __sendPromise(clock, address):
@@ -351,9 +351,9 @@ class KeyValServer(KeyValNode):
     def __put(self, key, value):
         self.__keyValLock.acquire()
         self.keyVal[key] = value
+        testValue = self.keyVal[key]
         self.__keyValLock.release()
         print("Put", "(", key, ",", value, ")", time())
-        testValue = self.keyVal[key]
         return testValue == value
 
     # deletes a key from the key values store based on a given key
