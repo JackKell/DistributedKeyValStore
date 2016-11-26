@@ -205,7 +205,7 @@ class KeyValServer(KeyValNode):
                 if sentCommits:
                     quorumSize = len(self.servers)
                     if len(committeds) >= (quorumSize // 2):
-                        print(committeds)
+
                         commmitedRequest = committeds[0][2]
                         outmessage = self.encodeMessage(command="reply",
                                                         key=commmitedRequest["key"],
@@ -214,6 +214,7 @@ class KeyValServer(KeyValNode):
                                                         clock=commmitedRequest["clock"])
                         clientConnection.send(outmessage.encode("ascii"))
                         needJob = True
+                        print(outmessage)
 
     def __acceptor(self):
         def __sendPromise(clock, address):
@@ -289,6 +290,7 @@ class KeyValServer(KeyValNode):
                     print("\treceived invalid command,", command)
                     continue
                 __sendCommitted(clock, proposerAddress, key, value, success)
+                print(self.keyVal)
                 self.learnerJobs.task_done()
 
     def __startRequestHandlers(self):
