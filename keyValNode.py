@@ -9,7 +9,7 @@ from socket import SOCK_STREAM
 class KeyValNode:
     def __init__(self, port):
         self.port = port
-        self.timeout = 5
+        self.timeout = 20
         self.bufferSize = 1024
         self.backlog = 25
 
