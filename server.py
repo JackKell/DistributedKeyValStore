@@ -11,13 +11,13 @@ def main():
     tcpPort = 0
     if len(arguments) != 1:
         print("server <tcpPort>")
-        tcpPort = 5557
+        tcpPort = 5559
     else:
         tcpPort = int(arguments[0])
 
     keyValServer = KeyValServer(tcpPort)
-    # keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]
-    keyValServer.servers = ["127.0.0.1"]
+    keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]
+    # keyValServer.servers = ["127.0.0.1"]
 
     print("Press Ctrl-c to end server")
 

@@ -42,6 +42,6 @@ class KeyValClient(KeyValNode):
         success = bool(inMessage["success"])
 
         if success:
-            print(str(key) + " removed")
+            print(str(key), " removed")
         else:
-            print(str(key) + " not removed")
+            print(str(key), " not removed")

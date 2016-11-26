@@ -19,6 +19,7 @@ def main():
     testOperationsPath = "data/kvp-operations.csv"
 
     keyValClient = KeyValClient(serverAddress, port)
+    keyValClient.timeout = 20
 
     with open(testOperationsPath, newline="\n") as operationsFile:
         operationReader = reader(operationsFile, delimiter=",")
