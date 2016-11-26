@@ -236,12 +236,14 @@ class KeyValServer(KeyValNode):
                 proposerAddress = address[0]
                 print("acceptor: received", command, "message from", proposerAddress)
                 if command == "prepare":
+                    print("\tclock:", clock, "minProposal:", minProposal)
                     if clock > minProposal:
                         minProposal = clock
                         __sendPromise(clock, proposerAddress)
                     else:
                         print("\tignoring", request)
                 elif command == "accept":
+                    print("\tclock:", clock, "minProposal:", minProposal)
                     if clock >= minProposal:
                         __sendAccepted(proposerAddress)
                     else:
