@@ -17,7 +17,7 @@ def main():
 
     keyValServer = KeyValServer(tcpPort)
     keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]
-    # keyValServer.servers = ["127.0.0.1"]
+    #keyValServer.servers = ["127.0.0.1"]
 
     print("Press Ctrl-c to end server")
 

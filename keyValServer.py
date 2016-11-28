@@ -169,7 +169,7 @@ class KeyValServer(KeyValNode):
                 #     If any acceptedValues returned, replace value with acceptedValue for highest acceptedProposal
                 if not reachedPromiseQuorum:
                     quorumSize = len(self.servers)
-                    if len(promises) >= (quorumSize // 2 + 2):
+                    if len(promises) >= (quorumSize // 2 + 1):
                         reachedPromiseQuorum = True
                         # greatestClock = clock
                         # for index in range(0, len(promises)):
@@ -278,7 +278,7 @@ class KeyValServer(KeyValNode):
                 key = clientRequest["key"]
                 value = clientRequest["value"]
                 clock = request["clock"]
-                success = False
+                success = True
                 print("learner: received", command, "message from", address[0])
                 if command == "get":
                     value = self.__get(key)
