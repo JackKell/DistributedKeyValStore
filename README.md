@@ -32,5 +32,4 @@ python client.py n03 5555
 ```
 
 ### Additional Notes
-For the purposes of project 2 testing I have made it so the servers should be run on server nodes "n03", "n04", "n05", "n06", and "n07" and the client can be run on any of the nodes that are not also running a server. Additionally, if you want to change the the servers that are used in the cluster simply go into the `server.py` file and change the servers list `keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]` to be only the server nodes that you want. By doing this you can change the servers that are used and or the number of servers used.
-
+For the purposes of project 3 testing we have made it so the servers should be run on server nodes "n03", "n04", "n05", "n06", and "n07" and the client can be run on any of the nodes that are not also running a server. Additionally, if you want to change the the servers that are used in the cluster simply go into the `server.py` file and change the servers list `keyValServer.servers = ["n03", "n04", "n05", "n06", "n07"]` to be only the server nodes that you want. By doing this you can change the servers that are used and or the number of servers used.

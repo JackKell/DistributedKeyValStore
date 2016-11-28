@@ -16,6 +16,7 @@ from threading import current_thread
 from threading import Event
 from time import sleep
 from time import time
+from random import randint
 
 
 # KeyValServer
@@ -157,7 +158,7 @@ class KeyValServer(KeyValNode):
                             print("dropping old clock,", requestClock, "current clock:", clock)
                     self.proposerJobs.task_done()
 
-                sleep(0.05)
+                #sleep(0.05)
                 # 2.) Broadcasts Prepare(n) to all servers
                 if not sentPrepares:
                     print("proposer: broadcast prepare messages")
@@ -236,6 +237,16 @@ class KeyValServer(KeyValNode):
         acceptedValue = None
 
         while not self.stopEvent.is_set():
+            # Simulate acceptor failure by forcing it to sleep for 3 seconds.
+            # This is done as opposed to thread termination/re-creation since this
+            # toy program does not yet use persistant storage to save state.
+            # The state is maintained rather than read from persistant storage.
+            decideTofailValue = randint(0,100000)
+            if decideTofailValue == 999:
+                print("Random Simulated Acceptor Failure - Start")
+                sleep(2)
+                print("Random Simulated Acceptor Failure - End")
+
             if not self.acceptorJobs.empty():
                 connection, address, request = self.acceptorJobs.get()
                 command = request["command"]
