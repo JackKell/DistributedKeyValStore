@@ -198,9 +198,8 @@ class KeyValServer(KeyValNode):
                 if not sentCommits and reachedAcceptedQuorum:
                     print("proposer: send commit to the learners")
                     sentCommits = True
-                    for accepted in accepteds:
-                        learnerAddress = accepted[1][0]
-                        __sendCommit(clock, acceptedValue, learnerAddress)
+                    for server in self.servers:
+                        __sendCommit(clock, acceptedValue, server)
 
                 if sentCommits:
                     quorumSize = len(self.servers)
