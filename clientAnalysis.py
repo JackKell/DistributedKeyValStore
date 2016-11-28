@@ -7,6 +7,8 @@ from keyValClient import KeyValClient
 from time import time
 
 # A function that creates an instance of a KeyValClient
+# This code is identical to client.py, except with additional code to
+# record timing statistics.
 def main():
     arguments = argv[1:]
 
@@ -21,6 +23,7 @@ def main():
 
     keyValClient = KeyValClient(serverAddress, port)
 
+    # Open files for writing run statistics
     putcsv = open("output/put.csv", "w")
     getcsv = open("output/get.csv", "w")
     deletecsv = open("output/delete.csv", "w")

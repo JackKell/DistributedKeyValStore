@@ -18,9 +18,11 @@ def main():
 
     testOperationsPath = "data/kvp-operations.csv"
 
+    # Create an instance of the keyValClient class
     keyValClient = KeyValClient(serverAddress, port)
     keyValClient.timeout = 20
 
+    # Read and send requests to server
     with open(testOperationsPath, newline="\n") as operationsFile:
         operationReader = reader(operationsFile, delimiter=",")
         for operation in operationReader:

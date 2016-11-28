@@ -46,6 +46,8 @@ class KeyValServer(KeyValNode):
         self.numberOfRequestHandlers = 10
         self.proposalTimeout = 1
 
+    # The connection handler draws from the connection queue and handles
+    # communication between nodes. Requests are passed to the request queue
     def __connectionHandler(self):
         while not self.stopEvent.is_set():
             if not self.connections.empty():
@@ -55,6 +57,8 @@ class KeyValServer(KeyValNode):
                 self.requests.put((connection, address, request))
                 self.connections.task_done()
 
+    # The request queue gets all requests, and brokers them to more specific queues
+    # for agents to draw from
     def __requestHandler(self):
         while not self.stopEvent.is_set():
             if not self.requests.empty():
@@ -158,7 +162,6 @@ class KeyValServer(KeyValNode):
                             print("dropping old clock,", requestClock, "current clock:", clock)
                     self.proposerJobs.task_done()
 
-                #sleep(0.05)
                 # 2.) Broadcasts Prepare(n) to all servers
                 if not sentPrepares:
                     print("proposer: broadcast prepare messages")
@@ -339,12 +342,7 @@ class KeyValServer(KeyValNode):
         self.acceptor.start()
         self.learner.name = "learner"
         self.learner.start()
-        # TODO: make sure to remove this from the project at the end
-        # self.requests.put(("connection", "address", {
-        #     "command": "put",
-        #     "key": 5,
-        #     "value": "big"
-        # }))
+
 
     # The main loop for the server
     def __run(self):
@@ -391,75 +389,3 @@ class KeyValServer(KeyValNode):
     # Gracefully stops the server
     def stop(self):
         self.stopEvent.set()
-
-"""
-    delete this comment
-    proposer
-        sends
-            prepare
-            accept
-        receives
-            promise
-            accepted
-
-    acceptor
-        sends
-            promise
-            accepted
-        receives
-            prepare
-            accept
-
-    learner
-        sends
-            replys
-        receives
-            commits
-
-    """
-"""
-    def handleRequest(self, connection, address):
-        isRunning = True
-        while isRunning:
-            # Collect all the data from the connection
-            data = connection.recv(self.bufferSize)
-            # If there is no more data then break the loop
-            if not data:
-                break
-
-            self.keyValLock.acquire()
-            inMessage = self.decodeMessage(data)
-            outMessage = ""
-            command = inMessage["command"]
-            doTwoPhaseCommit = False
-
-            print(inMessage["isCommit"])
-            if bool(inMessage["isCommit"]):
-                doTwoPhaseCommit = True
-
-            if command == "get":
-                key = inMessage["key"]
-                value = self.get(key)
-                outMessage = self.encodeMessage(key=key, value=value, success=True)
-            elif command == "put":
-                if doTwoPhaseCommit:
-                    self.twoPhaseCommit(inMessage)
-                key = inMessage["key"]
-                value = inMessage["value"]
-                success = self.put(key, value)
-                outMessage = self.encodeMessage(key=key, value=value, success=success)
-            elif command == "delete":
-                if doTwoPhaseCommit:
-                    self.twoPhaseCommit(inMessage)
-                key = inMessage["key"]
-                success = self.delete(key)
-                outMessage = self.encodeMessage(key=key, success=success)
-            else:
-                error = "No command called " + command
-                outMessage = self.encodeMessage(success=False, error=error)
-
-            self.keyValLock.release()
-            connection.send(outMessage.encode("ascii"))
-            isRunning = False
-        connection.close()
-    """

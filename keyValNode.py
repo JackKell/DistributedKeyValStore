@@ -5,7 +5,7 @@ from socket import socket
 from socket import AF_INET
 from socket import SOCK_STREAM
 
-
+# All nodes, server or client, inheret this class
 class KeyValNode:
     def __init__(self, port):
         self.port = port
