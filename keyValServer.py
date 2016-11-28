@@ -241,7 +241,7 @@ class KeyValServer(KeyValNode):
             # This is done as opposed to thread termination/re-creation since this
             # toy program does not yet use persistant storage to save state.
             # The state is maintained rather than read from persistant storage.
-            decideTofailValue = randint(0,100000)
+            decideTofailValue = randint(0,1000000)
             if decideTofailValue == 999:
                 print("Random Simulated Acceptor Failure - Start")
                 sleep(2)
